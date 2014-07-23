@@ -962,19 +962,6 @@ function redirect_purge_inactive_redirects(array $types = array('redirect'), $in
  * @ingroup redirect_api
  */
 function redirect_redirect($redirect = NULL) {
-  // First check if we're in an infinite loop.
-  $session_id = session_id();
-  if (flood_is_allowed('redirection', 5, 15, $session_id ? $session_id : NULL)) {
-    flood_register_event('redirection', 60, $session_id ? $session_id : NULL);
-  }
-  else {
-    // For now don't trigger an error if being run inside SimpleTest.
-    if (empty($GLOBALS['drupal_test_info']['test_run_id'])) {
-      trigger_error(t('Infinite redirect loop prevented.'), E_USER_WARNING);
-    }
-    return FALSE;
-  }
-
   if (!isset($redirect)) {
     $redirect = new stdClass();
   }
