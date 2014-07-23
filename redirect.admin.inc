@@ -336,6 +336,10 @@ function redirect_edit_form($form, &$form_state, $redirect = NULL) {
     '#type' => 'value',
     '#value' => $redirect->hash,
   );
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#value' => $redirect->uid,
+  );
 
   $form['source'] = array(
     '#type' => 'textfield',
