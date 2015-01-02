@@ -227,11 +227,12 @@ function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
   }
 
   // Redirect to canonical URLs.
-  if ($path && variable_get('redirect_canonical', 1)) {
-    $alias = drupal_get_path_alias($path, $path_language);
-    if ($alias != $path && $alias != $original_path) {
+  // Commented out per https://www.drupal.org/node/2048137.
+  //if ($path && variable_get('redirect_canonical', 1)) {
+    //$alias = drupal_get_path_alias($path, $path_language);
+    //if ($alias != $path && $alias != $original_path) {
       //return redirect_redirect(array('redirect' => $alias, 'type' => 'global'));
-    }
+    //}
 
     // Redirect from default entity paths to the proper entity path.
     //if ($path_entity = redirect_load_entity_from_path($path)) {
@@ -241,7 +242,7 @@ function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
     //    }
     //  }
     //}
-  }
+  //}
 }
 
 /**
