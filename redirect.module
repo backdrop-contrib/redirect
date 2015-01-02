@@ -1488,8 +1488,8 @@ function redirect_field_attach_form($entity_type, $entity, &$form, &$form_state,
 function redirect_field_extra_fields() {
   $entity_info = entity_get_info();
   foreach (array_keys($entity_info) as $entity_type) {
-    if ($entity_type == 'comment') {
-      // The comment entity type supports URIs, but they're not real.
+    if (!redirect_entity_type_supports_redirects($entity_type)) {
+      // Redirect is explicitly disabled for this entity type.
       continue;
     }
     foreach (array_keys($entity_info[$entity_type]['bundles']) as $bundle) {
