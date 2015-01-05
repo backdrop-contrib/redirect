@@ -529,9 +529,13 @@ function redirect_load_by_hash($hash, $reset = FALSE) {
  *
  * @param $source
  *   The source of the URL redirect.
+ * @param $language
+ *   Language of the source URL.
+ * @param $query
+ *   Array of URL query parameters.
  *
  * @return
- *   An array of URL redirect objects indexed by redirect IDs.
+ *   The first matched URL redirect object, or FALSE if there aren't any.
  *
  * @see redirect_load_multiple()
  * @see _redirect_uasort()
@@ -687,7 +691,7 @@ function redirect_validate($redirect, $form, &$form_state) {
     }
   }
 
-  // Allow other modules to validate the SSH public key.
+  // Allow other modules to validate the redirect.
   foreach (module_implements('redirect_validate') as $module) {
     $function = $module . '_redirect_validate';
     $function($redirect, $form, $form_state);
@@ -1149,7 +1153,7 @@ function redirect_can_redirect() {
 }
 
 /**
- * Compare tha all values and associations in one array match another array.
+ * Compare that all values and associations in one array match another array.
  *
  * We cannot use array_diff_assoc() here because we need to be recursive.
  *
