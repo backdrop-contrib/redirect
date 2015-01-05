@@ -633,7 +633,7 @@ function redirect_settings_form($form, &$form_state) {
     '#title' => t('Delete redirects that have not been accessed for'),
     '#default_value' => variable_get('redirect_purge_inactive', 0),
     '#options' => array(0 => t('Never (do not discard)')) + drupal_map_assoc(array(604800, 1209600, 1814400, 2592000, 5184000, 7776000, 10368000, 15552000, 31536000), 'format_interval'),
-    '#description' => t('Only redirects managaged by the redirect module itself will be deleted. Redirects managed by other modules will be left alone.'),
+    '#description' => t('Only redirects managed by the redirect module itself will be deleted. Redirects managed by other modules will be left alone.'),
     '#disabled' => variable_get('redirect_page_cache', 0) && !variable_get('page_cache_invoke_hooks', TRUE),
   );
 
