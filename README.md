@@ -8,5 +8,5 @@ there are some flags in the code in areas where I believe some action is require
 but I did not know the correct action.
 
 those areas are flagged: 
-** TODO
-** BACKDROP_INITIAL_PORT
+* TODO
+* BACKDROP_INITIAL_PORT
