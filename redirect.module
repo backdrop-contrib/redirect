@@ -377,8 +377,7 @@ function redirect_path_update(array $path) {
   }
 
   if (!empty($path['original']['pid']) && $path['original']['pid'] == $path['pid'] && $path['original']['alias'] != $path['alias']) {
-    //$redirect = new stdClass();
-    $redirect = entity_create('redirect', array('type' => 'redirect'));
+    $redirect = new stdClass();
     redirect_object_prepare($redirect);
     $redirect->source = $path['original']['alias'];
     $redirect->redirect = $path['source'];
@@ -386,8 +385,7 @@ function redirect_path_update(array $path) {
     // Check if the redirect exists before saving.
     $hash = redirect_hash($redirect);
     if (!redirect_load_by_hash($hash)) {
-      //redirect_save($redirect);
-      $redirect->save();
+      redirect_save($redirect);
     }
   }
 }
@@ -972,11 +970,10 @@ function redirect_purge_inactive_redirects(array $types = array('redirect'), $in
  */
 function redirect_redirect($redirect = NULL) {
   if (!isset($redirect)) {
-    //$redirect = new stdClass();
-    $redirect = entity_create('redirect', array('type' => 'redirect'));
+    $redirect = new stdClass();
   }
   redirect_object_prepare($redirect, array('redirect' => current_path(), 'type' => 'manual', 'callback' => 'redirect_goto', 'cache' => TRUE));
-
+  $config = config('redirect.settings');
   if (empty($redirect->status_code)) {
     $redirect->status_code = $config->get('default_status_code');
   }
@@ -1576,3 +1573,13 @@ function redirect_config_info() {
   );
   return $prefixes;
 }
+
+/**
+ * Implements hook_autoload_info().
+ */
+function redirect_autoload_info() {
+  return array(
+    'RedirectController' => 'redirect.controller.inc',
+  );
+}
+

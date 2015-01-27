@@ -313,8 +313,7 @@ function redirect_list_form_operations_confirm_form($form, &$form_state, $operat
  */
 function redirect_edit_form($form, &$form_state, $redirect = NULL) {
   if (!isset($redirect)) {
-    //$redirect = new stdClass();
-    $redirect = entity_create('redirect', array('type' => 'redirect'));
+    $redirect = new stdClass();
   }
   $config = config('redirect.settings');
   // Merge default values.
@@ -552,8 +551,7 @@ function redirect_edit_form_validate($form, &$form_state) {
 function redirect_edit_form_submit($form, &$form_state) {
   form_state_values_clean($form_state);
   $redirect = (object) $form_state['values'];
-  //redirect_save($redirect);
-  $redirect->save();
+  redirect_save($redirect);
   backdrop_set_message(t('The redirect has been saved.'));
   $form_state['redirect'] = 'admin/config/search/redirect';
 }

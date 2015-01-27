@@ -91,8 +91,7 @@ function redirect_generate_batch_generate($num, array &$context) {
   for ($i = 0; $i < min($limit, $context['sandbox']['max'] - $context['sandbox']['progress']); $i++) {
     $rand = mt_rand(0, 100);
 
-    //$redirect = new stdClass();
-    $redirect = entity_create('redirect', array('type' => 'redirect'));
+    $redirect = new stdClass();
     redirect_object_prepare($redirect);
     $redirect->source = _redirect_generate_url();
     $redirect->devel_generate = TRUE;
@@ -122,8 +121,7 @@ function redirect_generate_batch_generate($num, array &$context) {
       $redirect->source_options['query'] = _redirect_generate_querystring();
     }
 
-    //redirect_save($redirect);
-    $redirect->save();
+    redirect_save($redirect);
 
     if (mt_rand(0, 1)) {
       db_update('redirect')

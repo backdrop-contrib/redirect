@@ -279,8 +279,7 @@ function redirect_update_7100() {
  * Migrate a path redirect redirect to a redirect redirect.
  */
 function _redirect_migrate_path_redirect_redirect($old_redirect) {
-  //$redirect = new stdClass();
-  $redirect = entity_create('redirect', array('type' => 'redirect'));
+  $redirect = new stdClass();
   redirect_object_prepare($redirect);
 
   $source_parsed = redirect_parse_url($old_redirect->source);
