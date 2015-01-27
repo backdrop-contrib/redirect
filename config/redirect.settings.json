@@ -1,0 +1,14 @@
+{
+  "_config_name": "redirect.settings",
+  "redirect": 1,
+  "passthrough_querystring": 1,
+  "warning": false,
+  "default_status_code": "301",
+  "page_cache": 0,
+  "purge_inactive": "0",
+  "global_home": 1,
+  "global_clean": 1,
+  "global_canonical": 1,
+  "global_deslash": 0,
+  "global_admin_paths": 0
+}

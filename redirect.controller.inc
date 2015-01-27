@@ -1,13 +1,12 @@
 <?php
 
-
 /**
  * Controller class for redirects.
  *
- * This extends the DrupalDefaultEntityController class, adding required
+ * This extends the DefaultEntityController class, adding required
  * special handling for redirect objects.
  */
-class RedirectController extends DrupalDefaultEntityController {
+class RedirectController extends DefaultEntityController {
 
   protected function attachLoad(&$redirects, $revision_id = FALSE) {
     // Unserialize the URL option fields.

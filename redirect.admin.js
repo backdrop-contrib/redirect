@@ -1,7 +1,7 @@
 
 (function ($) {
 
-Drupal.behaviors.redirectAdmin = {
+Backdrop.behaviors.redirectAdmin = {
   attach: function (context) {
     $('table.redirect-list-tableselect tbody input:checkbox').bind('change', function(context) {
       var checked = $('table.redirect-list-tableselect input:checkbox:checked').length;

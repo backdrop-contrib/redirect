@@ -284,7 +284,7 @@ function hook_redirect_delete($redirect) {
  *   The redirect that is being used for the redirect.
  *
  * @see redirect_redirect()
- * @see drupal_page_is_cacheable()
+ * @see backdrop_page_is_cacheable()
  * @ingroup redirect_api_hooks
  */
 function hook_redirect_alter($redirect) {

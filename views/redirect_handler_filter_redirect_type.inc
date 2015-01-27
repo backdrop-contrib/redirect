@@ -12,7 +12,7 @@ class redirect_handler_filter_redirect_type extends views_handler_filter_in_oper
       $options = array();
       $types = db_query("SELECT DISTINCT type FROM {redirect}")->fetchCol();
       foreach ($types as $type) {
-        $options[$type] = t(drupal_ucfirst($type));
+        $options[$type] = t(backdrop_ucfirst($type));
       }
       $this->value_options = $options;
     }

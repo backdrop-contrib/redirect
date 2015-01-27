@@ -41,7 +41,7 @@ function redirect_generate_redirects_batch_info($count, $delete = FALSE) {
   return array(
     'operations' => $operations,
     'finished' => 'redirect_generate_batch_finished',
-    'file' => drupal_get_path('module', 'redirect') . '/redirect.generate.inc',
+    'file' => backdrop_get_path('module', 'redirect') . '/redirect.generate.inc',
   );
 }
 
@@ -91,7 +91,8 @@ function redirect_generate_batch_generate($num, array &$context) {
   for ($i = 0; $i < min($limit, $context['sandbox']['max'] - $context['sandbox']['progress']); $i++) {
     $rand = mt_rand(0, 100);
 
-    $redirect = new stdClass();
+    //$redirect = new stdClass();
+    $redirect = entity_create('redirect', array('type' => 'redirect'));
     redirect_object_prepare($redirect);
     $redirect->source = _redirect_generate_url();
     $redirect->devel_generate = TRUE;
@@ -121,7 +122,8 @@ function redirect_generate_batch_generate($num, array &$context) {
       $redirect->source_options['query'] = _redirect_generate_querystring();
     }
 
-    redirect_save($redirect);
+    //redirect_save($redirect);
+    $redirect->save();
 
     if (mt_rand(0, 1)) {
       db_update('redirect')
@@ -149,13 +151,13 @@ function redirect_generate_batch_generate($num, array &$context) {
 
 function redirect_generate_batch_finished($success, $results, $operations) {
   if ($success) {
-    drupal_set_message(format_plural(count($results), 'One URL redirect created.', '@count URL redirects created.'));
+    backdrop_set_message(format_plural(count($results), 'One URL redirect created.', '@count URL redirects created.'));
   }
   else {
     // An error occurred.
     // $operations contains the operations that remained unprocessed.
     $error_operation = reset($operations);
-    drupal_set_message(t('An error occurred while processing @operation with arguments : @args', array('@operation' => $error_operation[0], '@args' => print_r($error_operation[0], TRUE))));
+    backdrop_set_message(t('An error occurred while processing @operation with arguments : @args', array('@operation' => $error_operation[0], '@args' => print_r($error_operation[0], TRUE))));
   }
 }
 

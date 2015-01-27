@@ -109,7 +109,7 @@ function redirect_install() {
   // If the path redirect table exists, then set the schema to run the
   // migration update function.
   if (db_table_exists('path_redirect')) {
-    drupal_set_installed_schema_version('redirect', 6999);
+    backdrop_set_installed_schema_version('redirect', 6999);
   }
 }
 
@@ -117,8 +117,13 @@ function redirect_install() {
  * Implements hook_uninstall().
  */
 function redirect_uninstall() {
-  drupal_load('module', 'redirect');
+  backdrop_load('module', 'redirect');
   $variables = array_keys(redirect_variables());
+  /*
+   *  TODO: figure out how to load the 'variables' from
+   * redirect.settings.json?????
+   */
+
   foreach ($variables as $variable) {
     variable_del($variable);
   }
@@ -219,7 +224,7 @@ function redirect_update_7000(&$sandbox) {
   }
 
   // Ensure the redirect module is loaded since we need to use its functions.
-  drupal_load('module', 'redirect');
+  backdrop_load('module', 'redirect');
 
   $query = db_query_range("SELECT * FROM {path_redirect} WHERE rid > :rid ORDER BY rid", 0, 25, array(':rid' => $sandbox['current_rid']));
   foreach ($query as $old_redirect) {
@@ -274,7 +279,8 @@ function redirect_update_7100() {
  * Migrate a path redirect redirect to a redirect redirect.
  */
 function _redirect_migrate_path_redirect_redirect($old_redirect) {
-  $redirect = new stdClass();
+  //$redirect = new stdClass();
+  $redirect = entity_create('redirect', array('type' => 'redirect'));
   redirect_object_prepare($redirect);
 
   $source_parsed = redirect_parse_url($old_redirect->source);
@@ -283,7 +289,7 @@ function _redirect_migrate_path_redirect_redirect($old_redirect) {
     $redirect->source_options['query'] = $source_parsed['query'];
   }
 
-  $redirect_parsed = redirect_parse_url($old_redirect->redirect) + array('query' => drupal_get_query_array($old_redirect->query), 'fragment' => $old_redirect->fragment);
+  $redirect_parsed = redirect_parse_url($old_redirect->redirect) + array('query' => backdrop_get_query_array($old_redirect->query), 'fragment' => $old_redirect->fragment);
   $redirect->redirect = $redirect_parsed['url'];
   if (!empty($redirect_parsed['query'])) {
     $redirect->redirect_options['query'] = $redirect_parsed['query'];
@@ -299,7 +305,8 @@ function _redirect_migrate_path_redirect_redirect($old_redirect) {
   $redirect->language = empty($old_redirect->language) ? LANGUAGE_NONE : $old_redirect->language;
 
   // Default status codes get a value of 0.
-  if ($old_redirect->type != variable_get('redirect_default_status_code', 301)) {
+  $config = config('redirect.settings');
+  if ($old_redirect->type != $config->get('default_status_code')) {
     $redirect->status_code = (int) $old_redirect->type;
   }
 
@@ -338,6 +345,12 @@ function _redirect_migrate_path_redirect_redirect($old_redirect) {
  * Migrate path redirect variables to redirect variables.
  */
 function _redirect_migrate_path_redirect_variables() {
+  /**
+   * BACKDROP_INITIAL_PORT
+   * TODO: what to do???
+   * Initial Backdrop port; I didn't do anything;
+   * probably something should be done here.
+   */
   // Port path_redirect variables.
   $variables = array(
     'path_redirect_default_status' => 'redirect_default_status_code',
