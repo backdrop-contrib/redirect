@@ -10,3 +10,7 @@ but I did not know the correct action.
 those areas are flagged: 
 * TODO
 * BACKDROP_INITIAL_PORT
+
+Dependencies
+* locale
+* field_ui

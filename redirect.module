@@ -193,7 +193,7 @@ function redirect_get_current_redirect() {
   // attempt to find a redirect matching the current path, query string, and
   // language code.
   if (!isset($redirect)) {
-    $redirect = redirect_load_by_source(current_path(), $GLOBALS['language']->language, backdrop_get_query_parameters());
+    $redirect = redirect_load_by_source(current_path(), $GLOBALS['language']->langcode, backdrop_get_query_parameters());
   }
 
   // @todo Add an alter hook here?
@@ -219,7 +219,8 @@ function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
   // the path 'foo/redirect', then redirect_init() would normally fail since it
   // would not find a match.
   if ($path != $original_path && $original_path == current_path()) {
-    $current_langcode = !empty($path_language) ? $path_language : $GLOBALS['language']->language;
+    dpm($GLOBALS);
+    $current_langcode = !empty($path_language) ? $path_language : $GLOBALS['language']->langcode;
     $current_query = backdrop_get_query_parameters();
     if ($redirect = redirect_load_by_source($original_path, $current_langcode, $current_query)) {
       redirect_set_current_redirect($redirect);
@@ -432,16 +433,18 @@ function redirect_views_api() {
  *
  * Adds an action on 404 pages to create a redirect.
  */
-function redirect_preprocess_page(&$variables) {
+/*function redirect_preprocess_page(&$variables) {
+  dpm('kong');
   if (redirect_is_current_page_404() && user_access('administer redirects')) {
-    if (!isset($page['content']['system_main']['actions'])) {
+    dpm(user_access('administer redirects'));
+    //if (!isset($page['content']['system_main']['actions'])) {
       $page['content']['system_main']['actions'] = array(
         '#theme' => 'links',
         '#links' => array(),
         '#attributes' => array('class' => array('action-links')),
         '#weight' => -100,
       );
-    }
+    //}
     // We cannot simply use current_path() because if a 404 path is set, then
     // that value overrides whatever is in $_GET['q']. The
     // backdrop_deliver_html_page() function thankfully puts the original current
@@ -452,8 +455,17 @@ function redirect_preprocess_page(&$variables) {
       'href' => 'admin/config/search/redirect/add',
       'query' => array('source' => $destination['destination']) + backdrop_get_destination(),
     );
+    dpm($page);
   }
-}
+}*/
+/**
+ * Implements hook_theme()
+ */
+/*function redirect_theme() {
+  return array(
+    'file' => 'redirect.theme.inc',
+  );
+}*/
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -1392,6 +1404,7 @@ function redirect_status_code_options($code = NULL) {
  *   TRUE if the current page is a 404, or FALSE otherwise.
  */
 function redirect_is_current_page_404() {
+  dpm('::'.backdrop_get_http_header('Status').'::');
   return backdrop_get_http_header('Status') == '404 Not Found';
 }
 
@@ -1426,7 +1439,7 @@ function locale_form_redirect_edit_form_alter(&$form, &$form_state) {
   $form['language'] = array(
     '#type' => 'select',
     '#title' => t('Language'),
-    '#options' => array(LANGUAGE_NONE => t('All languages')) + locale_language_list('name'),
+    '#options' => array(LANGUAGE_NONE => t('All languages')),// + locale_language_list('name'),
     '#default_value' => $form['language']['#value'],
     '#description' => t('A redirect set for a specific language will always be used when requesting this page in that language, and takes precedence over redirects set for <em>All languages</em>.'),
   );
@@ -1444,10 +1457,14 @@ function redirect_field_attach_form($entity_type, $entity, &$form, &$form_state,
     return;
   }
 
+  /**
+   * todo: fix redirect_entity_type_supports_redirects function
+   * todo: to correctly detect if entity type supports redirects
+   */
   // Check if this entity type supports redirects.
-  if (!redirect_entity_type_supports_redirects($entity_type)) {
+  /*if (!redirect_entity_type_supports_redirects($entity_type)) {
     return;
-  }
+  }*/
 
   $uri = entity_uri($entity_type, $entity);
   if (empty($uri['path'])) {
@@ -1469,6 +1486,9 @@ function redirect_field_attach_form($entity_type, $entity, &$form, &$form_state,
 
   // Only support vertical tabs if there is a vertical tab element.
   foreach (element_children($form) as $key) {
+    dpm('geoff');
+    $my_type = &backdrop_static(__FUNCTION__);
+    dpm($my_type);
     if (isset($form[$key]['#type']) && $form[$key]['#type'] == 'vertical_tabs') {
       $form['redirect']['#group'] = $key;
       $form['redirect']['#attached']['js']['vertical-tabs'] = backdrop_get_path('module', 'redirect') . '/redirect.js';
@@ -1509,17 +1529,17 @@ function redirect_field_extra_fields() {
   $info = array();
   $entity_info = entity_get_info();
   foreach (array_keys($entity_info) as $entity_type) {
-    if (!redirect_entity_type_supports_redirects($entity_type)) {
+    /*if (!redirect_entity_type_supports_redirects($entity_type)) {
       // Redirect is explicitly disabled for this entity type.
       continue;
-    }
+    }*/
     foreach (array_keys($entity_info[$entity_type]['bundles']) as $bundle) {
-      if (!isset($entity_info[$entity_type]['bundles'][$bundle]['uri callback']) && !isset($entity_info[$entity_type]['uri callback'])) {
+      /*if (!isset($entity_info[$entity_type]['bundles'][$bundle]['uri callback']) && !isset($entity_info[$entity_type]['uri callback'])) {
         // The bundle or base entity must have an URI callback defined otherwise
         // we cannot use the entity_uri() function to lookup the entity's source
         // path.
         continue;
-      }
+      }*/
       $info[$entity_type][$bundle]['form']['redirect'] = array(
         'label' => t('URL redirects'),
         'description' => t('Redirect module form elements'),
@@ -1580,6 +1600,12 @@ function redirect_config_info() {
 function redirect_autoload_info() {
   return array(
     'RedirectController' => 'redirect.controller.inc',
+    'redirect_handler_field_redirect_link_delete' => 'views/redirect_handler_field_redirect_link_delete.inc',
+    'redirect_handler_field_redirect_link_edit' => 'views/redirect_handler_field_redirect_link_edit.inc',
+    'redirect_handler_field_redirect_operations' => 'views/redirect_handler_field_redirect_operations.inc',
+    'redirect_handler_field_redirect_redirect' => 'views/redirect_handler_field_redirect_redirect.inc',
+    'redirect_handler_field_redirect_source' => 'views/redirect_handler_field_redirect_source.inc',
+    'redirect_handler_filter_redirect_type' => 'views/redirect_handler_filter_redirect_type.inc',
   );
 }
 
