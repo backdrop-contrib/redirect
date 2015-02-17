@@ -219,7 +219,6 @@ function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
   // the path 'foo/redirect', then redirect_init() would normally fail since it
   // would not find a match.
   if ($path != $original_path && $original_path == current_path()) {
-    dpm($GLOBALS);
     $current_langcode = !empty($path_language) ? $path_language : $GLOBALS['language']->langcode;
     $current_query = backdrop_get_query_parameters();
     if ($redirect = redirect_load_by_source($original_path, $current_langcode, $current_query)) {
@@ -1486,9 +1485,7 @@ function redirect_field_attach_form($entity_type, $entity, &$form, &$form_state,
 
   // Only support vertical tabs if there is a vertical tab element.
   foreach (element_children($form) as $key) {
-    dpm('geoff');
     $my_type = &backdrop_static(__FUNCTION__);
-    dpm($my_type);
     if (isset($form[$key]['#type']) && $form[$key]['#type'] == 'vertical_tabs') {
       $form['redirect']['#group'] = $key;
       $form['redirect']['#attached']['js']['vertical-tabs'] = backdrop_get_path('module', 'redirect') . '/redirect.js';
