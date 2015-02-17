@@ -1401,9 +1401,10 @@ function redirect_status_code_options($code = NULL) {
  *
  * @return
  *   TRUE if the current page is a 404, or FALSE otherwise.
+ * todo: BACKDROP_PORT get the 404 tests working.
  */
 function redirect_is_current_page_404() {
-  dpm('::'.backdrop_get_http_header('Status').'::');
+  //dpm('::'.backdrop_get_http_header('Status').'::');
   return backdrop_get_http_header('Status') == '404 Not Found';
 }
 
