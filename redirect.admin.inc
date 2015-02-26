@@ -302,6 +302,13 @@ function redirect_list_form_operations_confirm_form($form, &$form_state, $operat
 }
 
 /**
+ * Page callback; Redirect to the form for creating a redirect.
+ */
+function redirect_add_redirect_page() {
+  backdrop_goto('admin/config/search/redirect/add');
+}
+
+/**
  * Form builder to add or edit an URL redirect.
  *
  * @see redirect_element_validate_source()

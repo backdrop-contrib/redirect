@@ -144,6 +144,20 @@ function redirect_menu() {
     'weight' => 50,
   );
 
+  // Add an action link to the 404 page.
+  $site_404 = config_get('system.site_404');
+  if (empty($path)) {
+    $site_404 = 'system/404';
+  }
+  $items[$site_404 . '/add-redirect'] = array(
+    'title' => 'Add URL redirect from this page to another location',
+    'type' => MENU_LOCAL_ACTION,
+    'page callback' => 'redirect_add_redirect_page',
+    'access callback' => 'redirect_access',
+    'access arguments' => array('create', 'redirect'),
+    'file' => 'redirect.admin.inc',
+  );
+
   // If the database logging module is enabled, add special 404 listing pages.
   if (module_exists('dblog')) {
     $items['admin/config/search/redirect/404'] = array(
@@ -426,45 +440,6 @@ function redirect_views_api() {
     'path' => backdrop_get_path('module', 'redirect') . '/views',
   );
 }
-
-/**
- * Implements hook_preprocess_page().
- *
- * Adds an action on 404 pages to create a redirect.
- */
-/*function redirect_preprocess_page(&$variables) {
-  dpm('kong');
-  if (redirect_is_current_page_404() && user_access('administer redirects')) {
-    dpm(user_access('administer redirects'));
-    //if (!isset($page['content']['system_main']['actions'])) {
-      $page['content']['system_main']['actions'] = array(
-        '#theme' => 'links',
-        '#links' => array(),
-        '#attributes' => array('class' => array('action-links')),
-        '#weight' => -100,
-      );
-    //}
-    // We cannot simply use current_path() because if a 404 path is set, then
-    // that value overrides whatever is in $_GET['q']. The
-    // backdrop_deliver_html_page() function thankfully puts the original current
-    // path into $_GET['destination'].
-    $destination = backdrop_get_destination();
-    $page['content']['system_main']['actions']['#links']['add_redirect'] = array(
-      'title' => t('Add URL redirect from this page to another location'),
-      'href' => 'admin/config/search/redirect/add',
-      'query' => array('source' => $destination['destination']) + backdrop_get_destination(),
-    );
-    dpm($page);
-  }
-}*/
-/**
- * Implements hook_theme()
- */
-/*function redirect_theme() {
-  return array(
-    'file' => 'redirect.theme.inc',
-  );
-}*/
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -1380,20 +1355,6 @@ function redirect_status_code_options($code = NULL) {
     307 => t('307 Temporary Redirect'),
   );
   return isset($codes[$code]) ? $codes[$code] : $codes;
-}
-
-/**
- * Returns if the current page request is a page not found (404 status error).
- *
- * Why the fuck do we have to do this? Why is there not an easier way???
- *
- * @return
- *   TRUE if the current page is a 404, or FALSE otherwise.
- * todo: BACKDROP_PORT get the 404 tests working.
- */
-function redirect_is_current_page_404() {
-  //dpm('::'.backdrop_get_http_header('Status').'::');
-  return backdrop_get_http_header('Status') == '404 Not Found';
 }
 
 /**
