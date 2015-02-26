@@ -86,7 +86,7 @@ function redirect_generate_batch_generate($num, array &$context) {
 
   $limit = 20;
   $types = array_keys(redirect_status_code_options());
-  $languages = module_exists('locale') ? array_keys(locale_language_list('name')) : array();
+  $languages = module_exists('locale') ? language_list() : array();
 
   for ($i = 0; $i < min($limit, $context['sandbox']['max'] - $context['sandbox']['progress']); $i++) {
     $rand = mt_rand(0, 100);
@@ -114,7 +114,7 @@ function redirect_generate_batch_generate($num, array &$context) {
     }
 
     if ($languages && $rand <= 20) {
-      $redirect->language = $languages[array_rand($languages)];
+      $redirect->langcode = array_rand(array_keys($languages));
     }
 
     if ($rand <= 30) {
