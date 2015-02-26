@@ -349,7 +349,7 @@ function redirect_edit_form($form, &$form_state, $redirect = NULL) {
     '#maxlength' => 560,
     '#default_value' => $redirect->rid || $redirect->source ? redirect_url($redirect->source, $redirect->source_options + array('alter' => FALSE)) : '',
     '#required' => TRUE,
-    '#field_prefix' => $GLOBALS['base_url'] . '/' . (variable_get('clean_url', 0) ? '' : '?q='),
+    '#field_prefix' => $GLOBALS['base_url'] . '/' . (config_get('system.core', 'clean_url') ? '' : '?q='),
     '#element_validate' => array('redirect_element_validate_source'),
   );
   $form['source_options'] = array(
