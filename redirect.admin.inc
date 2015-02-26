@@ -691,17 +691,17 @@ function redirect_settings_form($form, &$form_state) {
 function redirect_settings_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   $config = config('redirect.settings');
-  $config->set('auto_redirect', $values['redirect_auto_redirect']);
-  $config->set('passthrough_querystring', $values['redirect_passthrough_querystring']);
-  $config->set('warning', $values['redirect_warning']);
+  $config->set('auto_redirect', (bool) $values['redirect_auto_redirect']);
+  $config->set('passthrough_querystring', (bool) $values['redirect_passthrough_querystring']);
+  $config->set('warning', (bool) $values['redirect_warning']);
   $config->set('default_status_code', $values['redirect_default_status_code']);
-  $config->set('page_cache', $values['redirect_page_cache']);
-  $config->set('purge_inactive', $values['redirect_purge_inactive']);
-  $config->set('global_home', $values['redirect_global_home']);
-  $config->set('global_clean', $values['redirect_global_clean']);
-  $config->set('global_canonical', $values['redirect_global_canonical']);
-  $config->set('global_deslash', $values['redirect_global_deslash']);
-  $config->set('global_admin_paths', $values['redirect_global_admin_paths']);
+  $config->set('page_cache', (bool) $values['redirect_page_cache']);
+  $config->set('purge_inactive', (bool) $values['redirect_purge_inactive']);
+  $config->set('global_home', (bool) $values['redirect_global_home']);
+  $config->set('global_clean', (bool) $values['redirect_global_clean']);
+  $config->set('global_canonical', (bool) $values['redirect_global_canonical']);
+  $config->set('global_deslash', (bool) $values['redirect_global_deslash']);
+  $config->set('global_admin_paths', (bool) $values['redirect_global_admin_paths']);
   $config->save();
   redirect_page_cache_clear();
   backdrop_set_message(t('Redirect configuration saved.'));
