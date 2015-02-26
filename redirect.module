@@ -1154,11 +1154,7 @@ function redirect_can_redirect() {
       // If this is a command line request (Drush, etc), skip processing.
       $can_redirect = FALSE;
     }
-    /*
-     * BACKDROP_INITIAL_PORT
-     * TODO: find out where 'maintenance_mode' lives.
-     */
-    elseif ((variable_get('maintenance_mode', 0) || defined('MAINTENANCE_MODE')) && !user_access('access site in maintenance mode')) {
+    elseif ((state_get('maintenance_mode', 0) || defined('MAINTENANCE_MODE')) && !user_access('access site in maintenance mode')) {
       // Do not redirect in offline or maintenance mode.
       $can_redirect = FALSE;
     }
@@ -1250,12 +1246,8 @@ function redirect_language_load($language = LANGUAGE_NONE) {
  * Build the URL of a redirect for display purposes only.
  */
 function redirect_url($path, array $options = array(), $clean_url = NULL) {
-  /*
-   * BACKDROP_INITIAL_PORT
-   * TODO: find out wehre 'clean_url' 'system variable' lives.
-   */
   if (!isset($clean_url)) {
-    $clean_url = variable_get('clean_url', 0);
+    $clean_url = config_get('system.core', 'clean_url');
   }
 
   if ($path == '') {
@@ -1268,11 +1260,7 @@ function redirect_url($path, array $options = array(), $clean_url = NULL) {
 
   // The base_url might be rewritten from the language rewrite in domain mode.
   if (!isset($options['base_url'])) {
-    /**
-     * BACKDROP_INITIAL_PORT
-     * TODO: find out where 'https' 'system variable' lives.
-     */
-    if (isset($options['https']) && variable_get('https', FALSE)) {
+    if (isset($options['https']) && settings_get('https', FALSE)) {
       if ($options['https'] === TRUE) {
         $options['base_url'] = $GLOBALS['base_secure_url'];
         $options['absolute'] = TRUE;
