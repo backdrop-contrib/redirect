@@ -627,8 +627,8 @@ function redirect_settings_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Allow redirects to be saved into the page cache.'),
     '#default_value' => $config->get('page_cache'),
-    '#description' => t('This feature requires <a href="@performance">Cache pages for anonymous users</a> to be enabled and the %variable variable to be TRUE.', array('@performance' => url('admin/config/development/performance'), '%variable' => "\$conf['page_cache_invoke_hooks']")),
-    '#disabled' => !$config->get('cache') || !$config->get('page_cache_invoke_hooks'),
+    '#description' => t('This feature requires <a href="@performance">Cache pages for anonymous users</a> to be enabled and the %variable variable to be TRUE.', array('@performance' => url('admin/config/development/performance'), '%variable' => "\$settings['page_cache_invoke_hooks']")),
+    '#disabled' => !$config->get('cache') || !settings_get('page_cache_invoke_hooks', FALSE),
   );
   $form['redirect_purge_inactive'] = array(
     '#type' => 'select',
@@ -636,7 +636,7 @@ function redirect_settings_form($form, &$form_state) {
     '#default_value' => $config->get('purge_inactive'),
     '#options' => array(0 => t('Never (do not discard)')) + backdrop_map_assoc(array(604800, 1209600, 1814400, 2592000, 5184000, 7776000, 10368000, 15552000, 31536000), 'format_interval'),
     '#description' => t('Only redirects managed by the redirect module itself will be deleted. Redirects managed by other modules will be left alone.'),
-    '#disabled' => $config->get('page_cache') && !$config->get('page_cache_invoke_hooks'),
+    '#disabled' => $config->get('page_cache') && !settings_get('page_cache_invoke_hooks', FALSE),
   );
 
   $form['globals'] = array(
