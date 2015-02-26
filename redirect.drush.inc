@@ -53,7 +53,7 @@ function redirect_run_unprogressive_batch() {
   }
 
   // Attempt to increase the execution time.
-  drupal_set_time_limit(240);
+  backdrop_set_time_limit(240);
 
   // Build the batch array.
   $batch = call_user_func_array($batch_callback, $args);

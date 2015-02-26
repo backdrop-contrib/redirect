@@ -58,7 +58,7 @@
  *
  * This hook is invoked during redirect loading, which is handled by
  * entity_load(), via classes RedirectController and
- * DrupalDefaultEntityController. After the redirect information is read from
+ * DefaultEntityController. After the redirect information is read from
  * the database or the entity cache, hook_entity_load() is invoked on all
  * implementing modules, and then hook_redirect_load() is invoked on all
  * implementing modules.

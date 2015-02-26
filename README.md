@@ -16,7 +16,7 @@ Dependencies
 * locale
 * field_ui
 
-i.  Redirect module allows you to create 301 redirects inside the drupal GUI.
+i.  Redirect module allows you to create 301 redirects inside the Backdrop GUI.
   * for example you can tell user request to the path /old-path to return /new-path to the user.
   
 ii.  To install the redirect module:

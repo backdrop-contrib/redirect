@@ -819,7 +819,7 @@ function redirect_delete($rid) {
  * have that specific source or any sources that match 'node/1/%'.
  *
  * @param $path
- *   An string with an internal Drupal path.
+ *   An string with an internal Backdrop path.
  *
  * @ingroup redirect_api
  */
