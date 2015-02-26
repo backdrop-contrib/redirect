@@ -222,7 +222,7 @@ function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
   // will fail. This condition only happens when $path is the front page.
   // @todo Remove when http://drupal.org/node/1329914 is fixed in core.
   if (empty($_GET['q'])) {
-    $_GET['q'] = config_get('site_frontpage', 'node');
+    $_GET['q'] = config_get('system.core', 'site_frontpage');
     return;
   }
 
@@ -327,7 +327,7 @@ function redirect_init() {
   $request_uri = $original_uri = ltrim(request_uri(), '/');
 
   // Redirect from non-clean URLs to clean URLs.
-  if (config_get('redirect_global_clean', 1) && config_get('clean_url', 0) && strpos($request_uri, '?q=') !== FALSE) {
+  if (config_get('redirect.settings', 'global_clean') && config_get('system.core', 'clean_url') && strpos($request_uri, '?q=') !== FALSE) {
     //$redirect_global = TRUE;
     //$request_uri = str_replace('?q=', '', $request_uri);
   }
@@ -383,7 +383,7 @@ function redirect_entity_delete($entity, $entity_type) {
  * Implements hook_path_update().
  */
 function redirect_path_update(array $path) {
-  if (!config_get('redirect_auto_redirect', TRUE)) {
+  if (!config_get('redirect.settings', 'auto_redirect')) {
     return;
   }
   elseif (isset($path['redirect']) && !$path['redirect']) {
@@ -395,7 +395,7 @@ function redirect_path_update(array $path) {
     redirect_object_prepare($redirect);
     $redirect->source = $path['original']['alias'];
     $redirect->redirect = $path['source'];
-    $redirect->language = $path['original']['language'];
+    $redirect->language = $path['original']['langcode'];
     // Check if the redirect exists before saving.
     $hash = redirect_hash($redirect);
     if (!redirect_load_by_hash($hash)) {
@@ -408,7 +408,7 @@ function redirect_path_update(array $path) {
  * Implements hook_path_delete().
  */
 function redirect_path_delete($path) {
-  if (!config_get('redirect_auto_redirect', TRUE)) {
+  if (!config_get('redirect.settings', 'auto_redirect')) {
     return;
   }
   elseif (isset($path['redirect']) && !$path['redirect']) {
