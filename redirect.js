@@ -3,7 +3,7 @@
 
 Backdrop.behaviors.redirectFieldsetSummaries = {
   attach: function (context) {
-    $('fieldset.redirect-list', context).drupalSetSummary(function (context) {
+    $('fieldset.redirect-list', context).backdropSetSummary(function (context) {
       if ($('table.redirect-list tbody td.empty', context).length) {
         return Backdrop.t('No redirects');
       }
