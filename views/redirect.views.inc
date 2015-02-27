@@ -139,7 +139,7 @@ function redirect_views_data() {
 
   // Language field
   if (module_exists('locale')) {
-    $data['redirect']['language'] = array(
+    $data['redirect']['langcode'] = array(
       'title' => t('Language'),
       'help' => t('The language the redirect is for.'),
       'field' => array(

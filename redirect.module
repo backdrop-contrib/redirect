@@ -222,7 +222,7 @@ function redirect_url_inbound_alter(&$path, $original_path, $path_language) {
   // will fail. This condition only happens when $path is the front page.
   // @todo Remove when http://drupal.org/node/1329914 is fixed in core.
   if (empty($_GET['q'])) {
-    $_GET['q'] = config_get('site_frontpage', 'node');
+    $_GET['q'] = config_get('system.core', 'site_frontpage');
     return;
   }
 
@@ -327,7 +327,7 @@ function redirect_init() {
   $request_uri = $original_uri = ltrim(request_uri(), '/');
 
   // Redirect from non-clean URLs to clean URLs.
-  if (config_get('redirect_global_clean', 1) && config_get('clean_url', 0) && strpos($request_uri, '?q=') !== FALSE) {
+  if (config_get('redirect.settings', 'global_clean') && config_get('system.core', 'clean_url') && strpos($request_uri, '?q=') !== FALSE) {
     //$redirect_global = TRUE;
     //$request_uri = str_replace('?q=', '', $request_uri);
   }
@@ -383,7 +383,7 @@ function redirect_entity_delete($entity, $entity_type) {
  * Implements hook_path_update().
  */
 function redirect_path_update(array $path) {
-  if (!config_get('redirect_auto_redirect', TRUE)) {
+  if (!config_get('redirect.settings', 'auto_redirect')) {
     return;
   }
   elseif (isset($path['redirect']) && !$path['redirect']) {
@@ -395,7 +395,7 @@ function redirect_path_update(array $path) {
     redirect_object_prepare($redirect);
     $redirect->source = $path['original']['alias'];
     $redirect->redirect = $path['source'];
-    $redirect->language = $path['original']['language'];
+    $redirect->language = $path['original']['langcode'];
     // Check if the redirect exists before saving.
     $hash = redirect_hash($redirect);
     if (!redirect_load_by_hash($hash)) {
@@ -408,7 +408,7 @@ function redirect_path_update(array $path) {
  * Implements hook_path_delete().
  */
 function redirect_path_delete($path) {
-  if (!config_get('redirect_auto_redirect', TRUE)) {
+  if (!config_get('redirect.settings', 'auto_redirect')) {
     return;
   }
   elseif (isset($path['redirect']) && !$path['redirect']) {
@@ -421,12 +421,12 @@ function redirect_path_delete($path) {
   }
 
   // Redirect from a deleted alias to the system path.
-  //if (!redirect_load_by_source($path['alias'], $path['language'])) {
+  //if (!redirect_load_by_source($path['alias'], $path['langcode'])) {
   //  $redirect = new stdClass();
   //  redirect_object_prepare($redirect);
   //  $redirect->source = $path['alias'];
   //  $redirect->redirect = $path['source'];
-  //  $redirect->language = $path['language'];
+  //  $redirect->langcode = $path['langcode'];
   //  redirect_save($redirect);
   //}
 }
@@ -515,8 +515,8 @@ function redirect_load_by_hash($hash, $reset = FALSE) {
  *
  * @param $source
  *   The source of the URL redirect.
- * @param $language
- *   Language of the source URL.
+ * @param $langcode
+ *   Language code of the source URL.
  * @param $query
  *   Array of URL query parameters.
  *
@@ -529,7 +529,7 @@ function redirect_load_by_hash($hash, $reset = FALSE) {
  *
  * @ingroup redirect_api
  */
-function redirect_load_by_source($source, $language = LANGUAGE_NONE, array $query = array()) {
+function redirect_load_by_source($source, $langcode = LANGUAGE_NONE, array $query = array()) {
   // Run a case-insensitive query for matching RIDs first.
   $rid_query = db_select('redirect');
   $rid_query->addField('redirect', 'rid');
@@ -543,7 +543,7 @@ function redirect_load_by_source($source, $language = LANGUAGE_NONE, array $quer
     $source_condition->condition('source', '');
     $rid_query->condition($source_condition);
   }
-  $rid_query->condition('language', array($language, LANGUAGE_NONE));
+  $rid_query->condition('langcode', array($langcode, LANGUAGE_NONE));
   $rids = $rid_query->execute()->fetchCol();
 
   if ($rids && $redirects = redirect_load_multiple($rids)) {
@@ -567,7 +567,7 @@ function redirect_load_by_source($source, $language = LANGUAGE_NONE, array $quer
       uasort($redirects, '_redirect_uasort');
 
       // Allow other modules to alter the redirect candidates before selecting the top one.
-      $context = array('language' => $language, 'query' => $query);
+      $context = array('langcode' => $langcode, 'query' => $query);
       backdrop_alter('redirect_load_by_source', $redirects, $source, $context);
 
       return !empty($redirects) ? reset($redirects) : FALSE;
@@ -692,7 +692,7 @@ function redirect_object_prepare($redirect, $defaults = array()) {
     'uid' => $GLOBALS['user']->uid,
     'source_options' => array(),
     'redirect_options' => array(),
-    'language' => LANGUAGE_NONE,
+    'langcode' => LANGUAGE_NONE,
     'status_code' => 0,
     'count' => 0,
     'access' => 0,
@@ -1032,7 +1032,7 @@ function redirect_goto($redirect) {
 function redirect_hash($redirect) {
   $hash = array(
     'source' => $redirect->source,
-    'language' => $redirect->language,
+    'langcode' => $redirect->langcode,
   );
   if (!empty($redirect->source_options['query'])) {
     $hash['source_query'] = $redirect->source_options['query'];
@@ -1201,12 +1201,12 @@ function redirect_sort_recursive(&$array, $callback = 'sort') {
  *
  * @todo Remove when http://drupal.org/node/660736 is fixed in Drupal core.
  *
- * @param $language
+ * @param $langcode
  *   A language code. If not provided the default language will be returned.
  * @return
  *   A language object.
  */
-function redirect_language_load($language = LANGUAGE_NONE) {
+function redirect_language_load($langcode = LANGUAGE_NONE) {
   $languages = &backdrop_static(__FUNCTION__);
 
   if (!isset($languages)) {
@@ -1214,7 +1214,7 @@ function redirect_language_load($language = LANGUAGE_NONE) {
     $languages[LANGUAGE_NONE] = NULL;
   }
 
-  return isset($languages[$language]) ? $languages[$language] : NULL;
+  return isset($languages[$langcode]) ? $languages[$langcode] : NULL;
 }
 
 /**
@@ -1367,9 +1367,9 @@ function _redirect_uasort($a, $b) {
     // First sort by weight (case sensitivity).
     return $a_weight > $b_weight;
   }
-  elseif ($a->language != $b->language) {
+  elseif ($a->langcode != $b->langcode) {
     // Then sort by language specific over language neutral.
-    return $a->language == LANGUAGE_NONE;
+    return $a->langcode == LANGUAGE_NONE;
   }
   elseif (!empty($a->source_options['query']) != !empty($b->source_options['query'])) {
     // Then sort by redirects that do not have query strings over ones that do.
@@ -1385,11 +1385,19 @@ function _redirect_uasort($a, $b) {
  * Implements hook_form_FORM_ID_alter() on behalf of locale.module.
  */
 function locale_form_redirect_edit_form_alter(&$form, &$form_state) {
-  $form['language'] = array(
+  $language_options = array(
+    LANGUAGE_NONE => t('All languages'),
+  );
+  $languages = language_list();
+  foreach ($languages as $langcode => $language) {
+    $language_options[$langcode] = $language->name;
+  }
+
+  $form['langcode'] = array(
     '#type' => 'select',
     '#title' => t('Language'),
-    '#options' => array(LANGUAGE_NONE => t('All languages')),// + locale_language_list('name'),
-    '#default_value' => $form['language']['#value'],
+    '#options' => $language_options,
+    '#default_value' => isset($form['langcode']['#value']) ? $form['langcode']['#value'] : LANGUAGE_NONE,
     '#description' => t('A redirect set for a specific language will always be used when requesting this page in that language, and takes precedence over redirects set for <em>All languages</em>.'),
   );
 }
@@ -1445,7 +1453,7 @@ function redirect_field_attach_form($entity_type, $entity, &$form, &$form_state,
   $redirect = array(
     'redirect' => $uri['path'],
     'redirect_options' => array_diff_key($uri['options'], array('entity_type' => '', 'entity' => '')),
-    'language' => $langcode,
+    'langcode' => $langcode,
   );
 
   $form['redirect']['actions'] = array(

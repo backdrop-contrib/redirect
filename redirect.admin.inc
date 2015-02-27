@@ -20,7 +20,7 @@ function redirect_list_form($form, &$form_state) {
     'source' => array('data' => t('From'), 'field' => 'source', 'sort' => 'asc'),
     'redirect' => array('data' => t('To'), 'field' => 'redirect'),
     'status_code' => array('data' => t('Type'), 'field' => 'status_code'),
-    'language' => array('data' => t('Language'), 'field' => 'language'),
+    'language' => array('data' => t('Language'), 'field' => 'langcode'),
     'count' => array('data' => t('Count'), 'field' => 'count'),
     'access' => array('data' => t('Last accessed'), 'field' => 'access'),
     'operations' => array('data' => t('Operations')),
@@ -78,7 +78,7 @@ function redirect_list_form($form, &$form_state) {
   $rows = array();
   foreach ($redirects as $rid => $redirect) {
     $row = array();
-    $redirect->source_options = array_merge($redirect->source_options, array('alias' => TRUE, 'language' => redirect_language_load($redirect->language)));
+    $redirect->source_options = array_merge($redirect->source_options, array('alias' => TRUE, 'langcode' => redirect_language_load($redirect->langcode)));
     $source_url = redirect_url($redirect->source, $redirect->source_options);
     $redirect_url = redirect_url($redirect->redirect, array_merge($redirect->redirect_options, array('alias' => TRUE)));
     backdrop_alter('redirect_url', $redirect->source, $redirect->source_options);
@@ -86,7 +86,7 @@ function redirect_list_form($form, &$form_state) {
     $row['source'] = l($source_url, $redirect->source, $redirect->source_options);
     $row['redirect'] = l($redirect_url, $redirect->redirect, $redirect->redirect_options);
     $row['status_code'] = $redirect->status_code ? $redirect->status_code : t('Default (@default)', array('@default' => $default_status_code));
-    $row['language'] = module_invoke('locale', 'language_name', $redirect->language);
+    $row['language'] = language_name($redirect->langcode);
     $row['count'] = $redirect->count;
     if ($redirect->access) {
       $row['access'] = array(
@@ -329,7 +329,7 @@ function redirect_edit_form($form, &$form_state, $redirect = NULL) {
     'source_options' => isset($_GET['source_options']) ? backdrop_get_query_array($_GET['source_options']) : array(),
     'redirect' => isset($_GET['redirect']) ? urldecode($_GET['redirect']) : '',
     'redirect_options' => isset($_GET['redirect_options']) ? backdrop_get_query_array($_GET['redirect_options']) : array(),
-    'language' => isset($_GET['language']) ? urldecode($_GET['language']) : LANGUAGE_NONE,
+    'langcode' => isset($_GET['langcode']) ? urldecode($_GET['langcode']) : LANGUAGE_NONE,
   ));
 
   $form['rid'] = array(
@@ -380,9 +380,9 @@ function redirect_edit_form($form, &$form_state, $redirect = NULL) {
   );
 
   // This will be a hidden value unless locale module is enabled.
-  $form['language'] = array(
+  $form['langcode'] = array(
     '#type' => 'value',
-    '#value' => $redirect->language,
+    '#value' => $redirect->langcode,
   );
 
   $form['advanced'] = array(
@@ -475,7 +475,7 @@ function redirect_element_validate_redirect($element, &$form_state) {
 
 
   // Normalize the path.
-  $value = backdrop_get_normal_path($value, $form_state['values']['language']);
+  $value = backdrop_get_normal_path($value, $form_state['values']['langcode']);
 
   if (!valid_url($value) && !valid_url($value, TRUE) && $value != '<front>' && $value != '' && !file_exists($value)) {
     form_error($element, t('The redirect path %value is not valid.', array('%value' => $value)));
@@ -516,7 +516,7 @@ function _redirect_extract_url_options(&$element, &$form_state) {
   }
 
   if (!url_is_external($parsed['url'])) {
-    $parsed['url'] = backdrop_get_normal_path($parsed['url'], $form_state['values']['language']);
+    $parsed['url'] = backdrop_get_normal_path($parsed['url'], $form_state['values']['langcode']);
   }
 
   form_set_value($element, $parsed['url'], $form_state);
@@ -532,8 +532,8 @@ function redirect_edit_form_validate($form, &$form_state) {
   $redirect = (object) $form_state['values'];
 
   if (empty($form_state['values']['override'])) {
-    if ($existing = redirect_load_by_source($redirect->source, $redirect->language)) {
-      if ($redirect->rid != $existing->rid && $redirect->language == $existing->language) {
+    if ($existing = redirect_load_by_source($redirect->source, $redirect->langcode)) {
+      if ($redirect->rid != $existing->rid && $redirect->langcode == $existing->langcode) {
         // The "from" path should not conflict with another redirect
         $form_state['storage']['override_messages']['redirect-conflict'] = t('The base source path %source is already being redirected. Do you want to <a href="@edit-page">edit the existing redirect</a>?', array('%source' => $redirect->source, '@edit-page' => url('admin/config/search/redirect/edit/'. $existing->rid)));
         $form_state['rebuild'] = TRUE;
@@ -634,8 +634,8 @@ function redirect_settings_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Allow redirects to be saved into the page cache.'),
     '#default_value' => $config->get('page_cache'),
-    '#description' => t('This feature requires <a href="@performance">Cache pages for anonymous users</a> to be enabled and the %variable variable to be TRUE.', array('@performance' => url('admin/config/development/performance'), '%variable' => "\$conf['page_cache_invoke_hooks']")),
-    '#disabled' => !$config->get('cache') || !$config->get('page_cache_invoke_hooks'),
+    '#description' => t('This feature requires <a href="@performance">Cache pages for anonymous users</a> to be enabled and the %variable variable to be TRUE.', array('@performance' => url('admin/config/development/performance'), '%variable' => "\$settings['page_cache_invoke_hooks']")),
+    '#disabled' => !$config->get('cache') || !settings_get('page_cache_invoke_hooks', FALSE),
   );
   $form['redirect_purge_inactive'] = array(
     '#type' => 'select',
@@ -643,7 +643,7 @@ function redirect_settings_form($form, &$form_state) {
     '#default_value' => $config->get('purge_inactive'),
     '#options' => array(0 => t('Never (do not discard)')) + backdrop_map_assoc(array(604800, 1209600, 1814400, 2592000, 5184000, 7776000, 10368000, 15552000, 31536000), 'format_interval'),
     '#description' => t('Only redirects managed by the redirect module itself will be deleted. Redirects managed by other modules will be left alone.'),
-    '#disabled' => $config->get('page_cache') && !$config->get('page_cache_invoke_hooks'),
+    '#disabled' => $config->get('page_cache') && !settings_get('page_cache_invoke_hooks', FALSE),
   );
 
   $form['globals'] = array(
@@ -848,7 +848,7 @@ function redirect_list_table($redirects, $header) {
     'source' => array('data' => t('From'), 'field' => 'source', 'sort' => 'asc'),
     'redirect' => array('data' => t('To'), 'field' => 'redirect'),
     'status_code' => array('data' => t('Type'), 'field' => 'status_code'),
-    'language' => array('data' => t('Language'), 'field' => 'language'),
+    'language' => array('data' => t('Language'), 'field' => 'langcode'),
     'count' => array('data' => t('Count'), 'field' => 'count'),
     'access' => array('data' => t('Last accessed'), 'field' => 'access'),
     'operations' => array('data' => t('Operations')),
@@ -862,13 +862,13 @@ function redirect_list_table($redirects, $header) {
   $rows = array();
   foreach ($redirects as $rid => $redirect) {
     $row = array();
-    $redirect->source_options = array_merge($redirect->source_options, array('alias' => TRUE, 'language' => redirect_language_load($redirect->language)));
+    $redirect->source_options = array_merge($redirect->source_options, array('alias' => TRUE, 'language' => redirect_language_load($redirect->langcode)));
     $source_url = redirect_url($redirect->source, $redirect->source_options);
     $redirect_url = redirect_url($redirect->redirect, array_merge($redirect->redirect_options, array('alias' => TRUE)));
     $row['data']['source'] = l($source_url, $redirect->source, $redirect->source_options);
     $row['data']['redirect'] = l($redirect_url, $redirect->redirect, $redirect->redirect_options);
     $row['data']['status_code'] = $redirect->status_code ? $redirect->status_code : t('Default (@default)', array('@default' => $default_status_code));
-    $row['data']['language'] = module_invoke('locale', 'language_name', $redirect->language);
+    $row['data']['language'] = language_name($redirect->langcode);
     $row['data']['count'] = $redirect->count;
     if ($redirect->access) {
       $row['data']['access'] = array(

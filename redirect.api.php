@@ -91,7 +91,7 @@ function hook_redirect_load(array &$redirects, $types) {
  *   The source request path.
  * @param $context
  *   An array with the following key/value pairs:
- *   - language: The language code of the source request.
+ *   - langcode: The language code of the source request.
  *   - query: An array of the source request query string.
  *
  * @see redirect_load_by_source()

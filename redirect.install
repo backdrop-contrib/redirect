@@ -60,7 +60,7 @@ function redirect_schema() {
         'serialize' => TRUE,
         'description' => 'A serialized array of redirect options.',
       ),
-      'language' => array(
+      'langcode' => array(
         'description' => 'The language this redirect is for; if blank, the alias will be used for unknown languages.',
         'type' => 'varchar',
         'length' => 12,
@@ -94,7 +94,7 @@ function redirect_schema() {
     ),
     'indexes' => array(
       'expires' => array('type', 'access'),
-      'source_language' => array('source', 'language'),
+      'source_langcode' => array('source', 'langcode'),
     ),
   );
 
@@ -139,4 +139,24 @@ function redirect_update_1000() {
   update_variable_del('redirect_global_canonical');
   update_variable_del('redirect_global_deslash');
   update_variable_del('redirect_global_admin_paths');
+}
+
+/**
+ * Rename the language column to langcode.
+ */
+function redirect_update_1001() {
+  if (db_index_exists('redirect', 'source_language')) {
+    db_drop_index('redirect', 'source_language');
+  }
+  if (db_field_exists('redirect', 'language')) {
+    $spec = array(
+      'description' => 'The language this redirect is for; if blank, the alias will be used for unknown languages.',
+      'type' => 'varchar',
+      'length' => 12,
+      'not null' => TRUE,
+      'default' => 'und',
+    );
+    db_change_field('redirect', 'language', 'langcode', $spec);
+    db_add_index('redirect', 'source_langcode', array('source', 'langcode'));
+  }
 }
