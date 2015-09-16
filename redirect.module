@@ -33,6 +33,7 @@ function redirect_entity_info() {
   $info['redirect'] = array(
     'label' => t('Redirect'),
     'base table' => 'redirect',
+    'entity class' => 'Redirect',
     'controller class' => 'RedirectController',
     'entity keys' => array(
       'id' => 'rid',
@@ -391,11 +392,12 @@ function redirect_path_update(array $path) {
   }
 
   if (!empty($path['original']['pid']) && $path['original']['pid'] == $path['pid'] && $path['original']['alias'] != $path['alias']) {
-    $redirect = new stdClass();
-    redirect_object_prepare($redirect);
-    $redirect->source = $path['original']['alias'];
-    $redirect->redirect = $path['source'];
-    $redirect->language = $path['original']['langcode'];
+    $redirect = new Redirect(array(
+      'source' => $path['original']['alias'],
+      'redirect' => $path['source'],
+      'langcode' => $path['original']['langcode'],
+    ));
+
     // Check if the redirect exists before saving.
     $hash = redirect_hash($redirect);
     if (!redirect_load_by_hash($hash)) {
@@ -663,10 +665,8 @@ function redirect_access($op, $redirect, $account = NULL) {
 /**
  * Validate a redirect.
  */
-function redirect_validate($redirect, $form, &$form_state) {
-  $redirect = (object) $redirect;
-
-  // check that there there are no redirect loops
+function redirect_validate(Redirect $redirect, $form, &$form_state) {
+  // Check that there there are no redirect loops.
   if (url($redirect->source) == url($redirect->redirect)) {
     form_set_error('redirect', t('You are attempting to redirect the page to itself. This will result in an infinite loop.'));
   }
@@ -717,61 +717,8 @@ function redirect_object_prepare($redirect, $defaults = array()) {
  *
  * @ingroup redirect_api
  */
-function redirect_save($redirect) {
-  $transaction = db_transaction();
-
-  try {
-    if (!empty($redirect->rid) && !isset($redirect->original)) {
-      $redirect->original = entity_load_unchanged('redirect', $redirect->rid);
-    }
-
-    // Determine if we will be inserting a new node.
-    if (!isset($redirect->is_new)) {
-      $redirect->is_new = empty($redirect->rid);
-    }
-
-    // The changed timestamp is always updated for bookkeeping purposes.
-    //$redirect->changed = time();
-
-    redirect_hash($redirect);
-    if ($redirect->is_new || $redirect->hash != $redirect->original->hash) {
-      // Only new or changed redirects reset the last used value.
-      $redirect->count = 0;
-      $redirect->access = 0;
-    }
-
-    // Allow other modules to alter the redirect before saving.
-    module_invoke_all('redirect_presave', $redirect);
-    module_invoke_all('entity_presave', $redirect, 'redirect');
-
-    // Save the redirect to the database and invoke the post-save hooks.
-    if ($redirect->is_new) {
-      backdrop_write_record('redirect', $redirect);
-      module_invoke_all('redirect_insert', $redirect);
-      module_invoke_all('entity_insert', $redirect, 'redirect');
-    }
-    else {
-      backdrop_write_record('redirect', $redirect, array('rid'));
-      module_invoke_all('redirect_update', $redirect);
-      module_invoke_all('entity_update', $redirect, 'redirect');
-    }
-
-    // Clear internal properties.
-    unset($redirect->is_new);
-    unset($redirect->original);
-
-    // Clear the static loading cache.
-    entity_get_controller('redirect')->resetCache(array($redirect->rid));
-
-    // Ignore slave server temporarily to give time for the
-    // saved node to be propagated to the slave.
-    db_ignore_slave();
-  }
-  catch (Exception $e) {
-    $transaction->rollback();
-    watchdog_exception('redirect', $e);
-    throw $e;
-  }
+function redirect_save(Redirect $redirect) {
+  $redirect->save();
 }
 
 /**
@@ -877,30 +824,7 @@ function redirect_delete_by_entity_path($entity_type, $entity) {
  * @ingroup redirect_api
  */
 function redirect_delete_multiple(array $rids) {
-  $transaction = db_transaction();
-  if (!empty($rids)) {
-    $redirects = redirect_load_multiple($rids);
-
-    try {
-      // Let modules react to the individual redirects being deleted.
-      foreach ($redirects as $rid => $redirect) {
-        module_invoke_all('redirect_delete', $redirect);
-        module_invoke_all('entity_delete', $redirect, 'redirect');
-      }
-
-      db_delete('redirect')
-        ->condition('rid', $rids, 'IN')
-        ->execute();
-    }
-    catch (Exception $e) {
-      $transaction->rollback();
-      watchdog_exception('redirect', $e);
-      throw $e;
-    }
-
-    // Clear the redirect_load_multiple cache.
-    entity_get_controller('redirect')->resetCache();
-  }
+  entity_delete_multiple('redirect', $rids);
 }
 
 /**
@@ -956,15 +880,14 @@ function redirect_purge_inactive_redirects(array $types = array('redirect'), $in
  */
 function redirect_redirect($redirect = NULL) {
   if (!isset($redirect)) {
-    $redirect = new stdClass();
+    $redirect = new Redirect(array(
+      'redirect' => current_path(),
+      'type' => 'manual',
+      'cache' => TRUE,
+    ));
   }
-  redirect_object_prepare($redirect, array('redirect' => current_path(), 'type' => 'manual', 'callback' => 'redirect_goto', 'cache' => TRUE));
-  $config = config('redirect.settings');
-  if (empty($redirect->status_code)) {
-    $redirect->status_code = $config->get('default_status_code');
-  }
-
-  if ($config->get('passthrough_querystring')) {
+  
+  if (config_get('redirect.settings', 'passthrough_querystring')) {
     // Preserve the current query parameters in the redirect.
     $redirect->redirect_options += array('query' => array());
     $redirect->redirect_options['query'] += backdrop_get_query_parameters();
@@ -1029,7 +952,7 @@ function redirect_goto($redirect) {
   exit;
 }
 
-function redirect_hash($redirect) {
+function redirect_hash(Redirect $redirect) {
   $hash = array(
     'source' => $redirect->source,
     'langcode' => $redirect->langcode,
@@ -1554,7 +1477,8 @@ function redirect_config_info() {
  */
 function redirect_autoload_info() {
   return array(
-    'RedirectController' => 'redirect.controller.inc',
+    'Redirect' => 'redirect.entity.inc',
+    'RedirectController' => 'redirect.entity.inc',
     'redirect_handler_field_redirect_link_delete' => 'views/redirect_handler_field_redirect_link_delete.inc',
     'redirect_handler_field_redirect_link_edit' => 'views/redirect_handler_field_redirect_link_edit.inc',
     'redirect_handler_field_redirect_operations' => 'views/redirect_handler_field_redirect_operations.inc',
@@ -1563,4 +1487,3 @@ function redirect_autoload_info() {
     'redirect_handler_filter_redirect_type' => 'views/redirect_handler_filter_redirect_type.inc',
   );
 }
-
