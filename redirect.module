@@ -886,7 +886,7 @@ function redirect_redirect($redirect = NULL) {
       'cache' => TRUE,
     ));
   }
-  
+
   if (config_get('redirect.settings', 'passthrough_querystring')) {
     // Preserve the current query parameters in the redirect.
     $redirect->redirect_options += array('query' => array());
@@ -917,8 +917,11 @@ function redirect_redirect($redirect = NULL) {
 function redirect_goto($redirect) {
   $redirect->redirect_options['absolute'] = TRUE;
   $url = url($redirect->redirect, $redirect->redirect_options);
+  $redirect_status_code_options = redirect_status_code_options($redirect->status_code);
   backdrop_add_http_header('Location', $url);
-  backdrop_add_http_header('Status', redirect_status_code_options($redirect->status_code));
+  if ($redirect_status_code_options == NULL) {
+    backdrop_add_http_header('Status', $redirect_status_code_options);
+  }
 
   if (!empty($redirect->rid)) {
     // Add a custom header for the redirect ID so when the redirect is served
