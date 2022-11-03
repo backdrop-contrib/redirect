@@ -1,36 +1,49 @@
 Redirect
 ======================
+
+**Important note**: Redirect module was moved into Backdrop core in version 
+1.4.0. Use of this module is no longer necessary and no further changes will be 
+made here. If you would like to report a bug or feature request against Redirect 
+module, file an issue in the main Backdrop CMS core repository at https://github.com/backdrop/backdrop-issues.
+
 This is the new module home for a unified redirection API (also replaces
 path_redirect and globalredirect).
 
-* Initial Backdrop Port
+Requirements
+------------
 
-Dependencies
-* locale
+This module requires that the following modules are also enabled:
+
 * field_ui
 
 i.  Redirect module allows you to create 301 redirects inside the Backdrop GUI.
   * for example you can tell user request to the path /old-path to return /new-path to the user.
   
-ii.  To install the redirect module:
-  * download the source code from: <todo:URL> to your backdrop_root/modules/contrib
-  * visit /admin/modules
-  * search for 'redirect'
-  * click enable and save
-    * When adding content to your site you will see a Redirect Vertical tab
-      * you can click this tab to add a redirect to the content.
-  * You can also add redirects at: /admin/config/search/redirect
-  
-iii. Licensed under GPL v2
-    * See the LICENSE.txt file
+Installation
+------------
 
-iv.  No additional assets or licensing at this time.
+- Install this module using the official Backdrop CMS instructions at
+  https://backdropcms.org/guide/modules
+
+- Visit the Redirect listng page under Administration > Configuration > 
+    URL Handling > URL Redirects (admin/config/urls/redirect).
+
+- When adding content to your site you will see a Redirect Vertical tab where 
+    you can add a redirect to the content.
+
      
-v.  Maintainers:
-  *  Geoff St. Pierre (serundeputy)
+Current Maintainers
+-------------------
+
+  *  [Geoff St. Pierre](https://github.com/serundeputy)
   
-vi.  Past Maintainers:
-  * Dave Reid
+Credits
+-------
+
+  * Dave Reid maintained for Drupal.
   
    
-  
+License
+-------
+
+This project is GPL v2 software. See the LICENSE.txt file in this directory for complete text.  
